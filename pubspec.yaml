@@ -1,4 +1,4 @@
-name: socialnetworking
+name: PhotoShare
 description: A new Flutter application.
 
 # The following defines the version and build number for your application.
@@ -19,6 +19,18 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cloud_firestore: any
+  google_sign_in:
+  firebase_auth: any
+  image_picker:
+  firebase_storage: any
+  geolocator:
+  uuid:
+  firebase_messaging: any
+  flutter_svg:
+  cached_network_image:
+  path_provider:
+  image:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -35,10 +47,18 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
 
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  assets:
+    - images/googlesignin.png
+    - images/search.svg
+    - images/upload.svg
+    - images/activity-feed.svg
+    - images/no_content.svg
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -56,6 +76,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: DancingScript
+      fonts:
+        - asset: fonts/DancingScript-VariableFont_wght.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:
