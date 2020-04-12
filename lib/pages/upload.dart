@@ -132,7 +132,7 @@ class _UploadState extends State<Upload> {
       "postId": postId,
       "ownerId": widget.currentUser.id,
       "username": widget.currentUser.username,
-      "medialUrl": mediaUrl,
+      "mediaUrl": mediaUrl,
       "description": description,
       "location": location,
       "timestamp": timestamp,
