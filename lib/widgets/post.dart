@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:PhotoShare/models/user.dart';
+import 'package:PhotoShare/pages/activity_feed.dart';
+import 'package:PhotoShare/pages/comments.dart';
 import 'package:PhotoShare/pages/home.dart';
 import 'package:PhotoShare/widgets/custom_image.dart';
 import 'package:PhotoShare/widgets/progress.dart';
@@ -56,8 +58,7 @@ class Post extends StatefulWidget {
   }
 
   @override
-  _PostState createState() =>
-      _PostState(
+  _PostState createState() => _PostState(
         postId: this.postId,
         ownerId: this.ownerId,
         username: this.username,
@@ -107,7 +108,7 @@ class _PostState extends State<Post> {
             backgroundColor: Colors.grey,
           ),
           title: GestureDetector(
-            onTap: () => print('showing profile'),
+            onTap: () => showProfile(context,profileId: user.id),
             child: Text(
               user.username,
               style: TextStyle(
@@ -134,6 +135,7 @@ class _PostState extends State<Post> {
           .collection('userPosts')
           .document(postId)
           .updateData({'likes.$currentUserId': false});
+      removeLikeFromActivityFeed();
       setState(() {
         likeCount -= 1;
         isLiked = false;
@@ -145,6 +147,7 @@ class _PostState extends State<Post> {
           .collection('userPosts')
           .document(postId)
           .updateData({'likes.$currentUserId': true});
+      addLikeToActivityFeed();
       setState(() {
         likeCount += 1;
         isLiked = true;
@@ -159,6 +162,41 @@ class _PostState extends State<Post> {
     }
   }
 
+  addLikeToActivityFeed() {
+    bool isNotPostOwner=currentUserId!=ownerId;
+    if(isNotPostOwner) {
+      activityRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          .setData({
+        "type": "like",
+        "username": currentUser.username,
+        "userId": currentUser.id,
+        "userProfileImage": currentUser.photoUrl,
+        "postId": postId,
+        "mediaUrl": mediaUrl,
+        "timestamp": timestamp,
+      });
+    }
+  }
+
+  removeLikeFromActivityFeed() {
+    bool isNotPostOwner=currentUserId!=ownerId;
+    if(isNotPostOwner) {
+      activityRef
+          .document(ownerId)
+          .collection("feedItems")
+          .document(postId)
+          .get()
+          .then((doc) {
+        if (doc.exists) {
+          doc.reference.delete();
+        }
+      });
+    }
+  }
+
   buildPostImage() {
     return GestureDetector(
       onDoubleTap: handleLikePost,
@@ -168,22 +206,22 @@ class _PostState extends State<Post> {
           cachedNetworkImage(mediaUrl),
           showHeart
               ? Animator(
-            duration: Duration(
-              milliseconds: 500,
-            ),
-            tween: Tween(begin: 0.8, end: 1.4),
-            curve: Curves.elasticOut,
-            cycles: 0,
-            builder: (anim) =>
-                Transform.scale(
-                  scale: anim.value,
-                  child: Icon(
-                    Icons.favorite,
-                    size: 80,
-                    color: Colors.red,
+                  duration: Duration(
+                    milliseconds: 500,
                   ),
-                ),
-          ):Text(""),
+                  tween: Tween(begin: 0.8, end: 1.4),
+                  curve: Curves.elasticOut,
+                  cycles: 0,
+                  builder: (anim) => Transform.scale(
+                    scale: anim.value,
+                    child: Icon(
+                      Icons.favorite,
+                      size: 80,
+                      color: Colors.red,
+                    ),
+                  ),
+                )
+              : Text(""),
         ],
       ),
     );
@@ -206,7 +244,8 @@ class _PostState extends State<Post> {
             ),
             Padding(padding: EdgeInsets.only(right: 20.0)),
             GestureDetector(
-              onTap: () => print('showing comments'),
+              onTap: () => showComments(context,
+                  postId: postId, ownerId: ownerId, mediaUrl: mediaUrl),
               child: Icon(
                 Icons.chat_bubble_outline,
                 size: 28.0,
@@ -261,4 +300,15 @@ class _PostState extends State<Post> {
       ],
     );
   }
+}
+
+showComments(BuildContext context,
+    {String postId, String ownerId, String mediaUrl}) {
+  Navigator.push(context, MaterialPageRoute(builder: (context) {
+    return Comments(
+      postId: postId,
+      postOwnerId: ownerId,
+      postMediaUrl: mediaUrl,
+    );
+  }));
 }

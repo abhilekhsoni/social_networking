@@ -1,3 +1,4 @@
+import 'package:PhotoShare/pages/activity_feed.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class UserResult extends StatelessWidget {
       child: Column(
         children: <Widget>[
           GestureDetector(
-            onTap: ()=>print('tapped'),
+            onTap: ()=>showProfile(context,profileId: user.id),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.grey,

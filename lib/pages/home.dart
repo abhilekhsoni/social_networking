@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,7 +15,12 @@ final GoogleSignIn googleSignIn = GoogleSignIn();
 final StorageReference storageRef=FirebaseStorage.instance.ref();
 final userRef = Firestore.instance.collection('users');
 final postsRef = Firestore.instance.collection('posts');
+final commentsRef=Firestore.instance.collection('comments');
+final activityRef=Firestore.instance.collection('feeds');
+final followerRef=Firestore.instance.collection('followers');
+final followingRef=Firestore.instance.collection('following');
 final DateTime timestamp=DateTime.now();
+
 User currentUser;
 class Home extends StatefulWidget {
   @override
