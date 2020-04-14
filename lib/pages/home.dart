@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import './activity_feed.dart';
 import './search.dart';
 import './upload.dart';
 import './profile.dart';
+import 'dart:io';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
 final StorageReference storageRef=FirebaseStorage.instance.ref();
@@ -19,6 +21,7 @@ final commentsRef=Firestore.instance.collection('comments');
 final activityRef=Firestore.instance.collection('feeds');
 final followerRef=Firestore.instance.collection('followers');
 final followingRef=Firestore.instance.collection('following');
+final timelineRef=Firestore.instance.collection('timeline');
 final DateTime timestamp=DateTime.now();
 
 User currentUser;
@@ -28,6 +31,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final _scaffoldKey=GlobalKey<ScaffoldState>();
+  FirebaseMessaging _firebaseMessaging=FirebaseMessaging();
   bool isAuth = false;
   PageController pageController;
   int pageIndex = 0;
@@ -50,17 +55,66 @@ class _HomeState extends State<Home> {
     });
   }
 
-  handleSignIn(GoogleSignInAccount GoogleSignInAccount) {
+  handleSignIn(GoogleSignInAccount GoogleSignInAccount) async{
     if (GoogleSignInAccount != null) {
       createUserInFirestore();
       setState(() {
         isAuth = true;
       });
+      configurePushNotifications();
     } else {
       setState(() {
         isAuth = false;
       });
     }
+  }
+
+  configurePushNotifications() {
+    final GoogleSignInAccount user = googleSignIn.currentUser;
+    if (Platform.isIOS) getiOSPermission();
+    else if(Platform.isAndroid) getAndroidPermission();
+
+    _firebaseMessaging.getToken().then((token) {
+      //print("Firebase Messaging Token: $token\n");
+      userRef
+          .document(user.id)
+          .updateData({"androidNotificationToken": token});
+    });
+
+    _firebaseMessaging.configure(
+      // onLaunch: (Map<String, dynamic> message) async {},
+      // onResume: (Map<String, dynamic> message) async {},
+      onMessage: (Map<String, dynamic> message) async {
+        //print("on message: $message\n");
+        final String recipientId = message['data']['recipient'];
+        final String body = message['notification']['body'];
+        if (recipientId == user.id) {
+          //print("Notification shown!");
+          SnackBar snackbar = SnackBar(
+              content: Text(
+                body,
+                overflow: TextOverflow.ellipsis,
+              ));
+          _scaffoldKey.currentState.showSnackBar(snackbar);
+        }
+        //print("Notification NOT shown");
+      },
+    );
+  }
+  getAndroidPermission()async{
+    _firebaseMessaging.requestNotificationPermissions(
+        IosNotificationSettings(alert: true, badge: true, sound: true));
+    _firebaseMessaging.onIosSettingsRegistered.listen((settings) {
+      //print("Settings registered: $settings");
+    });
+  }
+
+  getiOSPermission() async{
+    _firebaseMessaging.requestNotificationPermissions(
+        IosNotificationSettings(alert: true, badge: true, sound: true));
+    _firebaseMessaging.onIosSettingsRegistered.listen((settings) {
+      //print("Settings registered: $settings");
+    });
   }
 
   createUserInFirestore() async {
@@ -78,6 +132,7 @@ class _HomeState extends State<Home> {
         "bio": "",
         "timestamp": timestamp,
       });
+      await followingRef.document(user.id).collection('userFollowers').document(user.id).setData({});
       doc = await userRef.document(user.id).get();
     }
     currentUser=User.fromDocument(doc);
@@ -112,10 +167,10 @@ class _HomeState extends State<Home> {
 
   Widget buildAuthScreen() {
     return Scaffold(
+      key: _scaffoldKey,
       body: PageView(
         children: <Widget>[
-          //Timeline(),
-        RaisedButton(onPressed: logout,child: Text('Logout'),),
+          Timeline(currentUser: currentUser),
           ActivityFeed(),
           Upload(currentUser: currentUser),
           Search(),

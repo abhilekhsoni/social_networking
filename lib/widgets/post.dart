@@ -226,7 +226,7 @@ class _PostState extends State<Post> {
 
   addLikeToActivityFeed() {
     bool isNotPostOwner = currentUserId != ownerId;
-    if (isNotPostOwner) {
+    //if (isNotPostOwner) {
       activityRef
           .document(ownerId)
           .collection("feedItems")
@@ -240,12 +240,12 @@ class _PostState extends State<Post> {
         "mediaUrl": mediaUrl,
         "timestamp": timestamp,
       });
-    }
+    //}
   }
 
   removeLikeFromActivityFeed() {
     bool isNotPostOwner = currentUserId != ownerId;
-    if (isNotPostOwner) {
+    //if (isNotPostOwner) {
       activityRef
           .document(ownerId)
           .collection("feedItems")
@@ -256,7 +256,7 @@ class _PostState extends State<Post> {
           doc.reference.delete();
         }
       });
-    }
+   // }
   }
 
   buildPostImage() {

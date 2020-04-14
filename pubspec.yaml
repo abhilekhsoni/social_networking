@@ -26,7 +26,7 @@ dependencies:
   firebase_storage: any
   geolocator:
   uuid:
-  firebase_messaging: any
+  firebase_messaging:
   flutter_svg:
   cached_network_image:
   path_provider:
